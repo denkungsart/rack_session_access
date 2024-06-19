@@ -16,7 +16,7 @@ module RackSessionAccess
       @routing = [
         [ 'GET', RackSessionAccess.path,      :show   ],
         [ 'GET', RackSessionAccess.edit_path, :edit   ],
-        [ 'PUT', RackSessionAccess.path,      :update ]
+        [ 'POST', RackSessionAccess.path,     :update ]
       ]
     end
 
@@ -75,7 +75,6 @@ module RackSessionAccess
           :method  => 'post',
           :enctype => 'application/x-www-form-urlencoded'
         }) do |form|
-          form.input(:type => 'hidden', :name =>'_method', :value => 'put')
           form.textarea(:cols => 40, :rows => 10, :name => 'data') {}
           form.p do |p|
             p.input(:type => 'submit', :value => "Update")
@@ -103,17 +102,10 @@ module RackSessionAccess
 
     # Dispatch action from request
     def dispatch_action(request)
-      method = request_method(request)
+      method = request.request_method
       path = request.path.sub(/\.\w+$/, '')
       route = @routing.detect { |r| r[0] == method && r[1] == path }
       route[2] if route
-    end
-
-    # Return HTTP method, detect emulated method with _method param
-    def request_method(request)
-      return request.request_method           if request.request_method != 'POST'
-      return request.params['_method'].upcase if request.params['_method']
-      request.request_method
     end
 
     # @return path for given action name
